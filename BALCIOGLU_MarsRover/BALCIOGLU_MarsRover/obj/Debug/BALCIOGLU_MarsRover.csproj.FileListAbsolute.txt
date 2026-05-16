@@ -1,5 +1,0 @@
-C:\Users\200397\Desktop\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\bin\Debug\BALCIOGLU_MarsRover.exe
-C:\Users\200397\Desktop\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\bin\Debug\BALCIOGLU_MarsRover.pdb
-C:\Users\200397\Desktop\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\obj\Debug\BALCIOGLU_MarsRover.exe
-C:\Users\200397\Desktop\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\obj\Debug\BALCIOGLU_MarsRover.pdb
-C:\Users\200397\Desktop\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\BALCIOGLU_MarsRover\obj\Debug\BALCIOGLU_MarsRover.csprojResolveAssemblyReference.cache
