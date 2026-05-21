@@ -1,0 +1,166 @@
+// prisma/schema.prisma
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  name          String?
+  email         String    @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  accounts     Account[]
+  sessions     Session[]
+  files        File[]
+  assets       Asset[]
+  transactions Transaction[]
+  assetNotes   AssetNote[]
+  balance      Balance?
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model File {
+  id         String   @id @default(cuid())
+  name       String
+  storedName String
+  size       Int
+  mimeType   String
+  path       String
+  userId     String
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AssetCategory {
+  FOREX
+  GOLD
+  STOCK
+  FUND
+  CRYPTO
+  OTHER
+}
+
+enum TransactionType {
+  BUY
+  SELL
+}
+
+enum BalanceMovementType {
+  DEPOSIT
+  WITHDRAW
+  BUY_DEBIT
+  SELL_CREDIT
+}
+
+model Asset {
+  id        String        @id @default(cuid())
+  userId    String
+  category  AssetCategory
+  symbol    String
+  name      String
+  quantity  Float         @default(0)
+  avgCost   Float         @default(0)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[]
+  notes        AssetNote[]
+
+  @@unique([userId, symbol])
+}
+
+model Transaction {
+  id           String          @id @default(cuid())
+  userId       String
+  assetId      String
+  type         TransactionType
+  quantity     Float
+  pricePerUnit Float
+  totalAmount  Float
+  spotPrice    Float?
+  note         String?
+  transactedAt DateTime        @default(now())
+  createdAt    DateTime        @default(now())
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model AssetNote {
+  id        String   @id @default(cuid())
+  userId    String
+  assetId   String
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  asset Asset @relation(fields: [assetId], references: [id], onDelete: Cascade)
+}
+
+model Balance {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  amount    Float    @default(0)
+  updatedAt DateTime @updatedAt
+
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  movements BalanceMovement[]
+}
+
+model BalanceMovement {
+  id          String              @id @default(cuid())
+  balanceId   String
+  type        BalanceMovementType
+  amount      Float
+  description String?
+  createdAt   DateTime            @default(now())
+
+  balance Balance @relation(fields: [balanceId], references: [id], onDelete: Cascade)
+}
