@@ -5,8 +5,8 @@ import "./globals.css";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata = {
-  title: "FileVault — Dosya Yönetim Sistemi",
-  description: "Güvenli dosya yükleme ve yönetim platformu",
+  title: "FileVault — Kişisel Bilgi Yönetim Sistemi",
+  description: "Güvenli kişisel Bilgi Yönetim Sistemi platformu",
 };
 
 export default function RootLayout({ children }) {

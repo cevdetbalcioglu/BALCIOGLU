@@ -39,7 +39,8 @@ export default async function DashboardLayout({ children }) {
                 Dosyalarım
               </Link>
               <Link href="/dashboard/portfolio" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              >Portfolyo</Link>
+              >Yatırımlarım</Link>
+              <Link href="/dashboard/vault" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">Şifrelerim</Link>
             </div>
 
             {/* User */}

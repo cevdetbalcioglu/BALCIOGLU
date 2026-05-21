@@ -23,6 +23,22 @@ export default async function DashboardPage() {
   const totalCost = assets.reduce((s, a) => s + a.avgCost * a.quantity, 0);
   const assetCount = assets.length;
 
+  // Kategoriye gore grupla
+  const CAT_LABELS = { FOREX: 'Döviz', GOLD: 'Altın', STOCK: 'Hisse', FUND: 'Fon', CRYPTO: 'Kripto', OTHER: 'Diğer' };
+  const CAT_ICONS  = { FOREX: '\u{1F4B1}', GOLD: '\u{1F947}', STOCK: '\u{1F4C8}', FUND: '\u{1F4CA}', CRYPTO: '\u20BF', OTHER: '\u{1F4E6}' };
+
+  const categoryGroups = assets.reduce((acc, a) => {
+    const cat = a.category;
+    if (!acc[cat]) acc[cat] = { totalCost: 0, count: 0, items: [] };
+    acc[cat].totalCost += a.avgCost * a.quantity;
+    acc[cat].count += 1;
+    acc[cat].items.push(a);
+    return acc;
+  }, {});
+
+  const sortedCategories = Object.entries(categoryGroups)
+    .sort(([, a], [, b]) => b.totalCost - a.totalCost);
+
   return (
     <div className="space-y-8 animate-fade-in">
 
@@ -88,9 +104,9 @@ export default async function DashboardPage() {
           {assetCount > 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="font-semibold text-slate-800 dark:text-slate-100">Portföy Özeti</h2>
+                <h2 className="font-semibold text-slate-800 dark:text-slate-100">Yatırım Özeti</h2>
                 <Link href="/dashboard/portfolio" className="text-sm text-blue-500 hover:text-blue-600 font-medium transition-colors">
-                  Portföye Git →
+                  Yatırımlara Git →
                 </Link>
               </div>
               <div className="p-6">
@@ -113,20 +129,20 @@ export default async function DashboardPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  {assets.slice(0, 4).map(a => (
-                    <div key={a.id} className="flex items-center justify-between text-sm">
+                  {sortedCategories.map(([cat, group]) => (
+                    <div key={cat} className="flex items-center justify-between text-sm">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-slate-700 dark:text-slate-300">{a.symbol}</span>
-                        <span className="text-xs text-slate-400">{a.name}</span>
+                        <span>{CAT_ICONS[cat]}</span>
+                        <span className="font-medium text-slate-700 dark:text-slate-300">
+                          {CAT_LABELS[cat] || cat}
+                        </span>
+                        <span className="text-xs text-slate-400">{group.count} varlık</span>
                       </div>
-                      <span className="text-xs text-slate-500 font-mono">
-                        {a.quantity.toFixed(4).replace(/\.?0+$/, '')} adet
+                      <span className="text-xs font-medium text-slate-600 dark:text-slate-300 font-mono">
+                        ₺{group.totalCost.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}
                       </span>
                     </div>
                   ))}
-                  {assetCount > 4 && (
-                    <p className="text-xs text-slate-400 pt-1">+{assetCount - 4} varlık daha</p>
-                  )}
                 </div>
               </div>
             </div>

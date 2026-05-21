@@ -409,6 +409,38 @@ export default function PortfolioPage() {
                 </tbody>
               </table>
             </div>
+
+            {/* Kategori footer — toplam değerler */}
+            {(() => {
+              const catTotalCost  = items.reduce((s, a) => s + a.avgCost * a.quantity, 0);
+              const catTotalValue = items.reduce((s, a) => { const v = getCurrentValue(a); return v ? s + v : s; }, 0);
+              const catTotalPnl   = catTotalValue - catTotalCost;
+              const catPnlPct     = catTotalCost > 0 ? (catTotalPnl / catTotalCost) * 100 : null;
+              const hasSpot       = items.some(a => getCurrentPrice(a) !== null);
+              return (
+                <div className="flex items-center justify-between px-6 py-3 bg-slate-50 dark:bg-slate-800/60 border-t border-slate-100 dark:border-slate-800">
+                  <span className="text-xs text-slate-400 font-medium">
+                    {items.length} varlık · Toplam Maliyet: <span className="text-slate-600 dark:text-slate-300">{fmtTRY(catTotalCost)}</span>
+                  </span>
+                  <div className="flex items-center gap-4">
+                    {hasSpot && catTotalValue > 0 && (
+                      <>
+                        <span className="text-xs text-slate-400">
+                          Güncel Değer: <span className="font-medium text-slate-700 dark:text-slate-200">{fmtTRY(catTotalValue)}</span>
+                        </span>
+                        <span className={`text-xs font-medium ${catTotalPnl >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'}`}>
+                          {catTotalPnl >= 0 ? '▲' : '▼'} {catTotalPnl >= 0 ? '+' : ''}{fmtTRY(catTotalPnl)}
+                          {catPnlPct !== null && <span className="ml-1 opacity-75">({catTotalPnl >= 0 ? '+' : ''}{fmt(catPnlPct, 2)}%)</span>}
+                        </span>
+                      </>
+                    )}
+                    {!hasSpot && (
+                      <span className="text-xs text-slate-400 italic">Anlık fiyat bekleniyor...</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         ))
       )}

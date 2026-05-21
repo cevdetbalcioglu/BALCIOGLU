@@ -25,6 +25,7 @@ model User {
   transactions Transaction[]
   assetNotes   AssetNote[]
   balance      Balance?
+  vaultItems  VaultItem[]
 }
 
 model Account {
@@ -164,3 +165,24 @@ model BalanceMovement {
 
   balance Balance @relation(fields: [balanceId], references: [id], onDelete: Cascade)
 }
+
+
+// prisma/schema.prisma — dosyanın sonuna ekle
+
+model VaultItem {
+  id         String    @id @default(cuid())
+  userId     String
+  title      String
+  category   String    @default("login") // login | card | note | other
+  username   String?
+  password   String    // AES-256-GCM şifreli (hex)
+  url        String?
+  notes      String?
+  iv         String    // Her kayıt için benzersiz IV (hex)
+  isFavorite Boolean   @default(false)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
