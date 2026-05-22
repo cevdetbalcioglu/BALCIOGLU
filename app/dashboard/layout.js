@@ -3,14 +3,26 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import { SignOutButton } from "@/components/auth/SignOutButton";
+import { db } from "@/lib/db";
+import { getUserMenus } from "@/lib/menu";
 
 export default async function DashboardLayout({ children }) {
   const session = await auth();
   if (!session) redirect("/auth/login");
 
+  // Kullanıcı rolünü çek
+  const dbUser = await db.user.findUnique({
+    where: { id: session.user.id },
+    select: { role: true },
+  });
+
+  const role = dbUser?.role || "USER";
+
+  // DB'den yetkili menüleri çek
+  const menus = await getUserMenus(session.user.id, role);
+
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Navbar */}
       <nav className="bg-white border-b border-slate-200 sticky top-0 z-10">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
@@ -24,41 +36,41 @@ export default async function DashboardLayout({ children }) {
               <span className="font-bold text-slate-800 text-lg">CB</span>
             </Link>
 
-            {/* Nav Links */}
+            {/* Dinamik Menüler */}
             <div className="hidden sm:flex items-center gap-1">
-              <Link
-                href="/dashboard"
-                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              >
-                Dashboard
-              </Link>
-              <Link
-                href="/dashboard/files"
-                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              >
-                Dosyalarım
-              </Link>
-              <Link href="/dashboard/portfolio" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
-              >Yatırımlarım</Link>
-              <Link href="/dashboard/vault" className="px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors">Şifrelerim</Link>
+              {menus.map(menu => (
+                <Link
+                  key={menu.id}
+                  href={menu.href}
+                  className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors"
+                >
+                  {menu.icon && <span className="text-base leading-none">{menu.icon}</span>}
+                  {menu.label}
+                </Link>
+              ))}
             </div>
 
-            {/* User */}
+            {/* Kullanıcı */}
             <div className="flex items-center gap-3">
-              <div className="hidden sm:block text-right">
-                <p className="text-sm font-medium text-slate-800">{session.user.name || "Kullanıcı"}</p>
+              <Link href="/dashboard/profile" className="hidden sm:block text-right group">
+                <p className="text-sm font-medium text-slate-800 group-hover:text-blue-500 transition-colors">
+                  {session.user.name || "Kullanıcı"}
+                </p>
                 <p className="text-xs text-slate-500">{session.user.email}</p>
-              </div>
-              <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-sm">
+              </Link>
+              <Link
+                href="/dashboard/profile"
+                title="Hesap Ayarları"
+                className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-semibold text-sm hover:bg-blue-200 hover:ring-2 hover:ring-blue-300 transition-all"
+              >
                 {(session.user.name || session.user.email || "U")[0].toUpperCase()}
-              </div>
+              </Link>
               <SignOutButton />
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Content */}
       <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>

@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { formatFileSize } from '@/lib/utils';
 import Link from 'next/link';
 import MarketWidget from '@/components/dashboard/MarketWidget';
+import LivePortfolioValue from '@/components/dashboard/LivePortfolioValue';
 
 export const metadata = { title: 'Dashboard — FileVault' };
 
@@ -104,13 +105,16 @@ export default async function DashboardPage() {
           {assetCount > 0 && (
             <div className="bg-white dark:bg-gray-900 rounded-xl border border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between p-6 border-b border-slate-100 dark:border-slate-800">
-                <h2 className="font-semibold text-slate-800 dark:text-slate-100">Yatırım Özeti</h2>
+                <div>
+                  <h2 className="font-semibold text-slate-800 dark:text-slate-100">Yatırım Özeti</h2>
+                  <p className="text-xs text-slate-400 mt-0.5">Toplam maliyet bazlı</p>
+                </div>
                 <Link href="/dashboard/portfolio" className="text-sm text-blue-500 hover:text-blue-600 font-medium transition-colors">
                   Yatırımlara Git →
                 </Link>
               </div>
               <div className="p-6">
-                <div className="grid grid-cols-3 gap-4 mb-4">
+                <div className="grid grid-cols-4 gap-4 mb-4">
                   <div>
                     <p className="text-xs text-slate-400 mb-1">Toplam Maliyet</p>
                     <p className="text-base font-semibold text-slate-800 dark:text-slate-100">
@@ -127,6 +131,7 @@ export default async function DashboardPage() {
                       ₺{(balance?.amount || 0).toLocaleString('tr-TR', { maximumFractionDigits: 2 })}
                     </p>
                   </div>
+                  <LivePortfolioValue assets={assets} />
                 </div>
                 <div className="space-y-2">
                   {sortedCategories.map(([cat, group]) => (

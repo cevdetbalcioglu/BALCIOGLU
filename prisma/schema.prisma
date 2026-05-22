@@ -26,6 +26,11 @@ model User {
   assetNotes   AssetNote[]
   balance      Balance?
   vaultItems  VaultItem[]
+  role           UserRole  @default(USER)
+  menuExceptions UserMenuException[]
+  pigeons     Pigeon[]
+  pigeonTeams PigeonTeam[]
+  clutches    Clutch[]
 }
 
 model Account {
@@ -184,5 +189,135 @@ model VaultItem {
   updatedAt  DateTime  @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+
+
+// prisma/schema.prisma — mevcut dosyaya eklenecek
+
+// User modeline ekle:
+// role        UserRole  @default(USER)
+// menuExceptions UserMenuException[]
+
+enum UserRole {
+  ADMIN
+  USER
+}
+
+model MenuItem {
+  id          String   @id @default(cuid())
+  label       String                        // Görünen ad: "Dashboard", "Yatırımlarım"
+  href        String                        // "/dashboard/portfolio"
+  icon        String?                       // Emoji veya icon adı
+  parentId    String?                       // Üst menü (null = ana menü)
+  order       Int      @default(0)          // Sıralama
+  isActive    Boolean  @default(true)       // Sistemden tamamen kaldırmadan devre dışı bırak
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  parent      MenuItem?  @relation("MenuTree", fields: [parentId], references: [id])
+  children    MenuItem[] @relation("MenuTree")
+
+  rolePermissions RoleMenuPermission[]
+  userExceptions  UserMenuException[]
+}
+
+model RoleMenuPermission {
+  id         String   @id @default(cuid())
+  role       UserRole
+  menuItemId String
+  createdAt  DateTime @default(now())
+
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([role, menuItemId])
+}
+
+model UserMenuException {
+  id         String   @id @default(cuid())
+  userId     String
+  menuItemId String
+  type       String   // "GRANT" | "REVOKE" — role iznini bireysel geç
+  createdAt  DateTime @default(now())
+
+  user     User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  menuItem MenuItem @relation(fields: [menuItemId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, menuItemId])
+}
+
+
+
+// prisma/schema.prisma — dosyanın sonuna ekle
+
+model Pigeon {
+  id          String   @id @default(cuid())
+  userId      String
+  ringId      String                        // TR-24-T0-01
+  ringLabel   String                        // Bilezik Renk / No: "Siyah 081"
+  gender      String?                       // "Erkek" | "Dişi"
+  performance String?
+  health      String?
+  notes       String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Pedigri ilişkileri
+  fatherOf  Clutch[] @relation("ClutchFather")
+  motherOf  Clutch[] @relation("ClutchMother")
+  hatchedIn ClutchEgg[]                     // Bu kuş hangi yumurtadan çıktı
+
+  @@unique([userId, ringId])
+}
+
+model PigeonTeam {
+  id          String   @id @default(cuid())
+  userId      String
+  teamNo      Int                           // 1, 2, 3...
+  season      String?                       // "2025-2026"
+  motherLabel String?                       // Anne bilezik etiketi
+  fatherLabel String?                       // Baba bilezik etiketi
+  ringColor   String?                       // "Mor - Mor"
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  clutches Clutch[]
+
+  @@unique([userId, teamNo])
+}
+
+model Clutch {
+  id          String   @id @default(cuid())
+  userId      String
+  teamId      String
+  round       Int                           // Tur: 1, 2, 3...
+  eggDate     DateTime?                     // Yumurta tarihi
+  hatchDate   DateTime?                     // Çıkış tarihi
+  fatherId    String?                       // Baba kuş
+  motherId    String?                       // Anne kuş
+  notes       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  team   PigeonTeam  @relation(fields: [teamId], references: [id], onDelete: Cascade)
+  father Pigeon?     @relation("ClutchFather", fields: [fatherId], references: [id])
+  mother Pigeon?     @relation("ClutchMother", fields: [motherId], references: [id])
+  eggs   ClutchEgg[]
+}
+
+model ClutchEgg {
+  id        String   @id @default(cuid())
+  clutchId  String
+  pigeonId  String?                         // Bu yumurtadan çıkan kuş
+  createdAt DateTime @default(now())
+
+  clutch  Clutch   @relation(fields: [clutchId], references: [id], onDelete: Cascade)
+  pigeon  Pigeon?  @relation(fields: [pigeonId], references: [id])
 }
 
